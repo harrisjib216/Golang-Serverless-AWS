@@ -56,7 +56,7 @@ func CreateUser(req events.APIGatewayProxyRequest, tableName string, dynamoClien
 		return nil, errors.New("Incorrect user data")
 	}
 
-	if !validators.IsValidEmail(newUser.Email) {
+	if !validators.IsEmailValid(newUser.Email) {
 		return nil, errors.New("Email is invalid")
 	}
 
@@ -66,13 +66,18 @@ func CreateUser(req events.APIGatewayProxyRequest, tableName string, dynamoClien
 	}
 
 	dynamoMap, err := dynamodbattribute.MarshalMap(newUser)
+
+	if err != nil {
+		return nil, errors.New("Could not convert this item")
+	}
+
 	creationRequest := &dynamodb.PutItemInput{
 		Item:      dynamoMap,
 		TableName: aws.String(tableName),
 	}
 
-	_, err := dynamoClient.PutItem(dynamoMap)
-	if err != nil {
+	res, err := dynamoClient.PutItem(creationRequest)
+	if err != nil && res != nil {
 		return nil, errors.New("Could not create this item")
 	}
 
@@ -102,7 +107,7 @@ func UpdateUser(req events.APIGatewayProxyRequest, tableName string, dynamoClien
 		TableName: aws.String(tableName),
 	}
 
-	_, err = dynaClient.PutItem(input)
+	_, err = dynamoClient.PutItem(input)
 	if err != nil {
 		return nil, errors.New("Could not update item")
 	}
@@ -121,7 +126,7 @@ func DeleteUser(req events.APIGatewayProxyRequest, tableName string, dynamoClien
 		TableName: aws.String(tableName),
 	}
 
-	_, err := dynaClient.DeleteItem(input)
+	_, err := dynamoClient.DeleteItem(input)
 
 	if err != nil {
 		return errors.New("Could not delete item")
