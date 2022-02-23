@@ -61,7 +61,7 @@ func CreateUser(req events.APIGatewayProxyRequest, tableName string, dynamoClien
 	}
 
 	existingUser, _ := GetUser(newUser.Email, tableName, dynamoClient)
-	if existingUser != nil {
+	if existingUser != nil && len(currentUser.Email) != 0 {
 		return nil, errors.New("This user already exists")
 	}
 
